@@ -184,3 +184,7 @@ GitHub: [@joshuaakanni](https://github.com/joshuaakanni)
 No open-source license has been added.
 
 This repository is shared for portfolio review and demonstration only. Ownership of the original project remains with LENOGROW.
+
+## Workflow Overview
+
+![AI Healthcare Appointment Management System](healthcare-system-overview.png)
