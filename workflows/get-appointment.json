@@ -1,0 +1,132 @@
+{
+  "name": "get-appointment",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "get_appointment_workflow_trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EHR_API_BASE_URL/webhook/get-appointment",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ehr-api-secret",
+              "value": "YOUR_EHR_API_SECRET"
+            },
+            {
+              "name": "x-request-nonce",
+              "value": "={{ $json.nonce }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "appointment_id",
+              "value": "={{ $('CODE_normalize_input').item.json.appointment_id }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "f028ab66-d2c7-4de3-a751-e3bb6aae43df",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.query ?? $json ?? {};\n\nlet parsed = {};\n\nif (typeof raw === \"string\") {\n  try {\n    parsed = JSON.parse(raw);\n  } catch {\n    parsed = {};\n  }\n} else {\n  parsed = raw;\n}\n\nreturn [\n  {\n    json: {\n      appointment_id: String(\n        parsed.appointment_id ??\n        parsed.appointmentId ??\n        parsed.id ??\n        \"\"\n      ).trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "79f99cbd-fc55-4d37-b5c2-d05babae123f",
+      "name": "CODE_normalize_input",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn [\n  {\n    json: {\n      nonce: uuidv4(),\n      timestamp: Math.floor(Date.now() / 1000)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "20e3ed0c-b605-4553-83aa-801114e782a7",
+      "name": "nonce_generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "get_appointment_workflow_trigger": {
+      "main": [
+        [
+          {
+            "node": "CODE_normalize_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CODE_normalize_input": {
+      "main": [
+        [
+          {
+            "node": "nonce_generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nonce_generator": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "tags": []
+}

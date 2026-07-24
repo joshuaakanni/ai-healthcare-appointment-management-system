@@ -1,0 +1,156 @@
+{
+  "name": "create-appointment",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "create_appointment_workflow_trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EHR_API_BASE_URL/webhook/create-appointment",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ehr-api-secret",
+              "value": "YOUR_EHR_API_SECRET"
+            },
+            {
+              "name": "x-request-nonce",
+              "value": "={{ $json.nonce }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "patient_id",
+              "value": "={{ $('CODE_normalize_input').item.json.patient_id }}"
+            },
+            {
+              "name": "provider_id",
+              "value": "={{ $('CODE_normalize_input').item.json.provider_id }}"
+            },
+            {
+              "name": "location_id",
+              "value": "={{ $('CODE_normalize_input').item.json.location_id }}"
+            },
+            {
+              "name": "appointment_type",
+              "value": "={{ $('CODE_normalize_input').item.json.appointment_type }}"
+            },
+            {
+              "name": "start_time",
+              "value": "={{ $('CODE_normalize_input').item.json.start_time }}"
+            },
+            {
+              "name": "end_time",
+              "value": "={{ $('CODE_normalize_input').item.json.end_time }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $('CODE_normalize_input').item.json.notes }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "16a86cc0-8378-406d-b52e-d2b873a6b997",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.query ?? $json ?? {};\n\nlet parsed = {};\n\nif (typeof raw === \"string\") {\n  try {\n    parsed = JSON.parse(raw);\n  } catch {\n    parsed = {};\n  }\n} else {\n  parsed = raw;\n}\n\nreturn [\n  {\n    json: {\n      patient_id: String(parsed.patient_id ?? parsed.patientId ?? \"\").trim(),\n      provider_id: String(parsed.provider_id ?? parsed.providerId ?? \"\").trim(),\n      location_id: String(parsed.location_id ?? parsed.locationId ?? \"\").trim(),\n      appointment_type: String(\n        parsed.appointment_type ?? parsed.appointmentType ?? \"\"\n      ).trim(),\n      start_time: String(parsed.start_time ?? parsed.startTime ?? \"\").trim(),\n      end_time: String(parsed.end_time ?? parsed.endTime ?? \"\").trim(),\n      notes: String(parsed.notes ?? \"\").trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "0c9d98c8-5d59-42ca-b875-a294e5351509",
+      "name": "CODE_normalize_input",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn [\n  {\n    json: {\n      nonce: uuidv4(),\n      timestamp: Math.floor(Date.now() / 1000)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "d48e3b3b-3a05-47ff-a707-51c1f9fc01a8",
+      "name": "nonce_generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "create_appointment_workflow_trigger": {
+      "main": [
+        [
+          {
+            "node": "CODE_normalize_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CODE_normalize_input": {
+      "main": [
+        [
+          {
+            "node": "nonce_generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nonce_generator": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "tags": []
+}

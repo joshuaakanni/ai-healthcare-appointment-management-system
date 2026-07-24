@@ -1,0 +1,345 @@
+{
+  "name": "AI Healthcare Appointment Management - MCP Server",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "path": "healthcare-appointment-mcp-demo"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -560
+      ],
+      "id": "02b03518-e50f-421f-a1fa-490adf14e61c",
+      "name": "MCP Server Trigger"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to Retrieves patient existence and patient-related operational records from EHR",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_LOOKUP_PATIENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -688,
+        -80
+      ],
+      "id": "18b351ea-c8b0-4f2c-b7a4-384a1b7d4ba0",
+      "name": "lookup_patient"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to creates a new patient record",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_CREATE_PATIENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        -80
+      ],
+      "id": "66626c31-f633-48d7-9599-26666329879f",
+      "name": "create_patient"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to retrieve all appointments linked to a patient.",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_LIST_PATIENT_APPOINTMENTS_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "4f289bba-b964-4944-9a6e-30bbf1a0ec7d",
+      "name": "list_patient_appointments"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to check available appointment slots for a provider, location, date range, and appointment type.",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_CHECK_AVAILABILITY_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        -80
+      ],
+      "id": "e3d6a17a-44dc-45c6-850a-25987b813d92",
+      "name": "check_availability"
+    },
+    {
+      "parameters": {
+        "description": "call this too to creates appointment",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_CREATE_APPOINTMENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "payload",
+              "displayName": "payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -32,
+        -80
+      ],
+      "id": "7069f98c-7866-42d9-94ea-f8be909051ab",
+      "name": "create_appointment"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to retrieves a specific appointment by appointment ID",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_GET_APPOINTMENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -80
+      ],
+      "id": "331a293a-248a-4e7e-85ea-931d0d1c92ec",
+      "name": "get_appointment"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to cancels an existing appointment",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_CANCEL_APPOINTMENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "ab979a98-1b36-4bdf-80b6-3b4f70fb6b35",
+      "name": "cancel_appointment"
+    },
+    {
+      "parameters": {
+        "description": "call this tool to move an existing appointment to a new valid time slot.",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_RESCHEDULE_APPOINTMENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -80
+      ],
+      "id": "3716a83a-6c19-4e2c-8963-3857e9d087fe",
+      "name": "reschedule_appointment"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "lookup_patient": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_patient": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "list_patient_appointments": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cancel_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reschedule_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "tags": []
+}

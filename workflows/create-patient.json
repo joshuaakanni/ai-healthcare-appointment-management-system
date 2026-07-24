@@ -1,0 +1,164 @@
+{
+  "name": "create-patient",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "create_patient_trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EHR_API_BASE_URL/webhook/create-patient",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ehr-api-secret",
+              "value": "YOUR_EHR_API_SECRET"
+            },
+            {
+              "name": "x-request-nonce",
+              "value": "={{ $json.nonce }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "first_name",
+              "value": "={{ $('CODE_normalize_input').item.json.first_name }}"
+            },
+            {
+              "name": "last_name",
+              "value": "={{ $('CODE_normalize_input').item.json.last_name }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $('CODE_normalize_input').item.json.email }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('CODE_normalize_input').item.json.phone }}"
+            },
+            {
+              "name": "date_of_birth",
+              "value": "={{ $('CODE_normalize_input').item.json.date_of_birth }}"
+            },
+            {
+              "name": "insurance_provider",
+              "value": "={{ $('CODE_normalize_input').item.json.insurance_provider }}"
+            },
+            {
+              "name": "plan_type",
+              "value": "={{ $('CODE_normalize_input').item.json.plan_type }}"
+            },
+            {
+              "name": "language",
+              "value": "={{ $('CODE_normalize_input').item.json.language }}"
+            },
+            {
+              "name": "preferred_location_id",
+              "value": "={{ $('CODE_normalize_input').item.json.preferred_location_id }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "1cbf7444-734a-4afb-9d8f-afeb4904b2ca",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.query ?? $json ?? {};\n\nlet parsed = {};\n\nif (typeof raw === \"string\") {\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    parsed = {};\n  }\n} else {\n  parsed = raw;\n}\n\nconst fullName = (parsed.fullName || parsed.full_name || \"\").trim();\nconst nameParts = fullName.split(/\\s+/).filter(Boolean);\n\nconst firstName =\n  parsed.first_name ??\n  parsed.firstName ??\n  nameParts[0] ??\n  \"\";\n\nconst lastName =\n  parsed.last_name ??\n  parsed.lastName ??\n  nameParts.slice(1).join(\" \") ??\n  \"\";\n\nreturn [\n  {\n    json: {\n      first_name: String(firstName).trim(),\n      last_name: String(lastName).trim(),\n      email: String(parsed.email ?? \"\").trim().toLowerCase(),\n      phone: String(parsed.phone ?? parsed.phoneNumber ?? \"\").trim(),\n      date_of_birth: String(parsed.date_of_birth ?? parsed.dateOfBirth ?? \"\").trim(),\n      insurance_provider: String(parsed.insurance_provider ?? parsed.insuranceProvider ?? \"\").trim(),\n      member_id: String(parsed.member_id ?? parsed.memberId ?? \"\").trim(),\n      plan_type: String(parsed.plan_type ?? parsed.planType ?? \"\").trim(),\n      language: String(parsed.language ?? \"en\").trim(),\n      preferred_location_id: String(\n        parsed.preferred_location_id ??\n        parsed.preferredLocationId ??\n        parsed.location_id ??\n        parsed.locationId ??\n        \"loc_1\"\n      ).trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "94adbca5-86a5-4882-85cc-4b485888b8aa",
+      "name": "CODE_normalize_input",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn [\n  {\n    json: {\n      nonce: uuidv4(),\n      timestamp: Math.floor(Date.now() / 1000)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "4aa9b9f7-0b54-4d42-9654-61d8fa94cd61",
+      "name": "nonce_generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "create_patient_trigger": {
+      "main": [
+        [
+          {
+            "node": "CODE_normalize_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CODE_normalize_input": {
+      "main": [
+        [
+          {
+            "node": "nonce_generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nonce_generator": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "tags": []
+}

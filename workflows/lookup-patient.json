@@ -1,0 +1,136 @@
+{
+  "name": "lookup-patient",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "lookup_patient_trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EHR_API_BASE_URL/webhook/lookup-patient",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ehr-api-secret",
+              "value": "YOUR_EHR_API_SECRET"
+            },
+            {
+              "name": "x-request-nonce",
+              "value": "={{ $json.nonce }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $('CODE_normalize_input').item.json.email }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('CODE_normalize_input').item.json.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "7aa90347-4ff4-4508-9052-04319ce66ff1",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.query ?? $json ?? {};\n\nlet parsed = {};\n\nif (typeof raw === \"string\") {\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    const parts = raw.split(\",\").map(v => v.trim()).filter(Boolean);\n    parsed = {\n      fullName: parts[0] || \"\",\n      phoneNumber: parts[1] || \"\",\n      email: parts.find(v => v.includes(\"@\")) || \"\"\n    };\n  }\n} else {\n  parsed = raw;\n}\n\nreturn [\n  {\n    json: {\n      fullName: parsed.fullName || \"\",\n      email: parsed.email || \"\",\n      phone: parsed.phone || parsed.phoneNumber || \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "2334d88a-fcd1-4287-be2e-bdffcb5deb7f",
+      "name": "CODE_normalize_input",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn [\n  {\n    json: {\n      nonce: uuidv4(),\n      timestamp: Math.floor(Date.now() / 1000)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "8e66d752-8301-4041-8e3a-b993afd6034c",
+      "name": "nonce_generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "lookup_patient_trigger": {
+      "main": [
+        [
+          {
+            "node": "CODE_normalize_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CODE_normalize_input": {
+      "main": [
+        [
+          {
+            "node": "nonce_generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nonce_generator": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "tags": []
+}
